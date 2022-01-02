@@ -1,0 +1,66 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.0-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'groovy'
+    id 'com.revolut.jooq-docker' version '0.3.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+
+    implementation 'org.codehaus.groovy:groovy:3.0.8'
+    implementation "org.flywaydb:flyway-core:8.3.0"
+    implementation 'org.jooq:jooq:3.15.5'
+    implementation 'io.r2dbc:r2dbc-postgresql'
+
+    // for flyway & jooq-docker
+    jdbc 'org.postgresql:postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.testcontainers:postgresql:1.16.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.spockframework:spock-spring:2.0-groovy-3.0'
+    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks {
+    generateJooqClasses {
+        schemas = ["public", "other_schema"]
+        basePackageName = "org.jooq.generated"
+        inputDirectory.setFrom(project.files("src/main/resources/db/migration"))
+        outputDirectory.set(project.layout.buildDirectory.dir("generated-jooq"))
+        excludeFlywayTable = true
+        outputSchemaToDefault = ["public"]
+    }
+}
